@@ -1,6 +1,3 @@
-// Vercel Serverless Function (Node.js)
-// Endpoint: POST /api/order
-
 const { Pool } = require('pg');
 
 // PostgreSQL Pool (Neon / Vercel Postgres)
@@ -11,22 +8,17 @@ const pool = new Pool({
   },
 });
 
-// Helper untuk membaca request body jika dikirim sebagai JSON stringstream
+// Tambahkan helper ini untuk memastikan body JSON terbaca sempurna di Vercel
 async function parseRequestBody(req) {
   if (req.body && typeof req.body === 'object') {
-    return req.body; // Jika Vercel kebetulan sudah mem-parsing-nya
+    return req.body;
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
+    req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', () => {
-      try {
-        resolve(body ? JSON.parse(body) : {});
-      } catch (e) {
-        resolve({});
-      }
+      try { resolve(body ? JSON.parse(body) : {}); } 
+      catch (e) { resolve({}); }
     });
   });
 }
@@ -46,7 +38,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // PERBAIKAN 1: Gunakan helper parser agar req.body tidak kosong
+    // PERBAIKAN: Baca request body menggunakan helper aman
     const body = await parseRequestBody(req);
     
     const name = (body.name || '').trim();
@@ -54,9 +46,7 @@ module.exports = async function handler(req, res) {
     const category = (body.category || '').trim();
     const budget = (body.budget || '').trim();
     const description = (body.description || '').trim();
-    
-    // Pastikan frontend mengirimkan key ini (atau 'recaptchaToken' sesuai form Anda)
-    const recaptchaResponse = (body['g-recaptcha-response'] || body.recaptchaToken || '').trim();
+    const recaptchaResponse = (body['g-recaptcha-response'] || '').trim();
 
     // --- 1. Validasi reCAPTCHA ---
     if (!recaptchaResponse) {
@@ -64,27 +54,25 @@ module.exports = async function handler(req, res) {
     }
 
     const recaptchaSecret = process.env.RECAPTCHA_SECRET;
-    
-    // PERBAIKAN 2: Menggunakan konstruksi URLSearchParams yang lebih aman untuk Google API
-    const verifyParams = new URLSearchParams({
-      secret: recaptchaSecret,
-      response: recaptchaResponse,
-      remoteip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || ''
-    });
+    const remoteIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+
+    // PERBAIKAN UTAMA: Gunakan URLSearchParams agar format data yang diterima Google 100% Valid
+    const verifyData = new URLSearchParams();
+    verifyData.append('secret', recaptchaSecret);
+    verifyData.append('response', recaptchaResponse);
+    verifyData.append('remoteip', remoteIp);
 
     const recaptchaVerify = await fetch(
-      'https://www.google.com/recaptcha/api/siteverify',
+      'https://google.com',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: verifyParams.toString(),
+        body: verifyData.toString(), // Mengirim format parameter URL yang valid
       }
     );
     const recaptchaData = await recaptchaVerify.json();
 
     if (!recaptchaData || recaptchaData.success !== true) {
-      // DEBUG LOG (Aman dihapus nanti): Membantu melihat error dari Google di log Vercel Anda
-      console.error('Google reCAPTCHA Error-Codes:', recaptchaData['error-codes']); 
       return res.status(400).json({ status: 'error', message: 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.' });
     }
 
@@ -93,7 +81,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ status: 'error', message: 'Semua field wajib diisi.' });
     }
 
-    const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+    const ip = remoteIp || 'unknown';
 
     // --- 3. Simpan ke PostgreSQL ---
     const insertResult = await pool.query(
@@ -113,7 +101,7 @@ module.exports = async function handler(req, res) {
 
       try {
         const tgRes = await fetch(
-          `https://api.telegram.org/bot${tgToken}/sendMessage`,
+          `https://telegram.org{tgToken}/sendMessage`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -141,7 +129,7 @@ module.exports = async function handler(req, res) {
     if (adminEmail) {
       const emailBody = `ID Pesanan: #${orderId}\nNama: ${name}\nWhatsApp: ${whatsapp}\nKategori: ${category}\nBudget: ${budget}\n\nDeskripsi:\n${description}\n\nIP: ${ip}\nWaktu: ${new Date().toISOString()}\nNotif Telegram: ${tgSuccess ? 'Berhasil' : 'Gagal'}`;
       try {
-        await fetch('https://api.sendgrid.com/v3/mail/send', {
+        await fetch('https://sendgrid.com', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${process.env.SENDGRID_API_KEY || ''}`,
