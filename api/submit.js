@@ -25,8 +25,9 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
+    // PASTI & WAJIB: Menggunakan www.google.com murni tanpa tanda :// sesuai instruksi Anda
     const options = {
-      hostname: '://google.com', 
+      hostname: 'www.google.com', 
       path: '/recaptcha/api/siteverify',
       method: 'POST',
       headers: {
@@ -83,7 +84,7 @@ module.exports = async function handler(req, res) {
       [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), req.headers['x-forwarded-for'] || 'unknown']
     );
 
-    // 2. Kirim teks biasa ke Telegram agar tidak diblokir/ditolak sistem Telegram
+    // 2. Format pesan teks biasa untuk Telegram agar aman dari error parse HTML
     const rawMessage = `🔔 PESANAN BARU\n\n👤 Nama: ${name}\n📱 WhatsApp: ${whatsapp}\n📂 Kategori: ${category}\n💰 Budget: ${budget}\n\n📝 Deskripsi:\n${description}`;
 
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
@@ -103,11 +104,11 @@ module.exports = async function handler(req, res) {
     if (tgData.ok === true) {
       return res.status(200).json({ status: 'success', message: 'Pengajuan berhasil masuk ke Database dan Telegram Anda!' });
     } else {
-      // Jika Telegram menolak, dia akan memunculkan alasan konkretnya di layar Anda
-      return res.status(400).json({ status: 'error', message: 'Database Sukses, tapi Telegram Menolak: ' + tgData.description });
+      return res.status(400).json({ status: 'error', message: 'Database Sukses, tetapi Telegram menolak: ' + tgData.description });
     }
 
   } catch (err) {
+    console.error('Server error:', err);
     return res.status(500).json({ status: 'error', message: 'Server error: ' + err.message });
   }
 };
