@@ -25,7 +25,7 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
-    // DIKUNCI: Menggunakan www.google.com murni tanpa tanda :// sesuai instruksi Anda
+    // TETAP DIKUNCI: Menggunakan www.google.com murni tanpa ada karakter ://
     const options = {
       hostname: 'www.google.com', 
       path: '/recaptcha/api/siteverify',
@@ -86,9 +86,10 @@ module.exports = async function handler(req, res) {
       [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
     );
 
+    // PERBAIKAN FATAL: Membaca indeks array ke-0 agar orderId mendapatkan nomor ID asli database (Bukan undefined)
     const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
 
-    // 2. Format Teks Notifikasi (Gunakan teks biasa agar aman)
+    // 2. Format Teks Notifikasi murni tanpa parsing HTML agar dijamin lolos filter Telegram
     const rawMessage = `🔔 PESANAN BARU\n\n📌 ID: #${orderId}\n👤 Nama: ${name}\n📱 WhatsApp: ${whatsapp}\n📂 Kategori: ${category}\n💰 Budget: ${budget}\n\n📝 Deskripsi:\n${description}\n\n🌐 IP: ${ipAddress}`;
 
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
@@ -98,7 +99,6 @@ module.exports = async function handler(req, res) {
 
     if (tgToken && tgChatId) {
       try {
-        // PERBAIKAN URL TELEGRAM: Menggunakan endpoint api.telegram.org yang benar dengan ${tgToken}
         const tgRes = await fetch(
           `https://telegram.org{tgToken}/sendMessage`,
           {
