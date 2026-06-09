@@ -606,7 +606,7 @@ projectForm.addEventListener('submit', async (e) => {
   data['g-recaptcha-response'] = recaptchaResponse;
 
   try {
-    const res = await fetch('/api/order', {
+    const res = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
