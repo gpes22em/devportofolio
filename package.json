@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id" style="scroll-behavior: smooth;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevPortfolio | Jasa Pembuatan Aplikasi Mobile & Web Premium</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <!-- Google reCAPTCHA v2 -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          background: "#0B0F19",
+          surface: "#1E293B",
+          "surface-border": "#2D3748",
+          primary: "#FF5A27",
+          "text-primary": "#FFFFFF",
+          "text-secondary": "#94A3B8",
+        },
+        borderRadius: {
+          DEFAULT: "0.25rem",
+          lg: "0.5rem",
+          xl: "0.75rem",
+        },
+        spacing: {
+          xs: "4px",
+          sm: "8px",
+          md: "16px",
+          lg: "24px",
+          xl: "40px",
+          xxl: "80px",
+          "container-max": "1200px",
+        },
+        fontFamily: {
+          sans: ["Plus Jakarta Sans", "sans-serif"],
+        },
+        fontSize: {
+          "display-xl": ["64px", { lineHeight: "1.1", letterSpacing: "-0.04em", fontWeight: "800" }],
+          "headline-lg": ["48px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "headline-md": ["32px", { lineHeight: "1.3", fontWeight: "600" }],
+          "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+          "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+        }
+      },
+    },
+  }
+  </script>
+
+  <style>
+  body {
+  background-color: #0B0F19;
+  color: #94A3B8;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .glass-nav {
+  background: rgba(11, 15, 25, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .card {
+  background: #1E293B;
+  border: 1px solid #2D3748;
+  border-radius: 0.5rem;
+  padding: 24px;
+  transition: all 0.2s ease;
+  }
+  .card:hover {
+  border-color: #FF5A27;
+  transform: translateY(-2px);
+  }
+  .input-base {
+  background: #0B0F19;
+  border: 1px solid #2D3748;
+  border-radius: 0.25rem;
+  padding: 12px 16px;
+  color: white;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s;
+  }
+  .input-base:focus {
+  border-color: #FF5A27;
+  box-shadow: 0 0 0 2px rgba(255, 90, 39, 0.3);
+  }
+  .btn-primary {
+  background: #FF5A27;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 0.25rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  }
+  .btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  }
+  .btn-primary:active {
+  transform: translateY(0);
+  }
+  .btn-secondary {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  }
+  .btn-secondary:hover {
+  background: white;
+  color: #0B0F19;
+  }
+  .nav-btn {
+  background: #1E293B;
+  border: 1px solid #2D3748;
+  color: #94A3B8;
+  padding: 8px 16px;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  }
+  .nav-btn:hover {
+  border-color: #FF5A27;
+  color: white;
+  background: rgba(255, 90, 39, 0.1);
+  transform: translateY(-1px);
+  }
+  .nav-btn.active {
+  background: #FF5A27;
+  border-color: #FF5A27;
+  color: white;
+  }
+  .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+  }
+  .chip {
+  background: rgba(255, 90, 39, 0.1);
+  color: #FF5A27;
+  padding: 4px 12px;
+  border-radius: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  }
+  .alert-box {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 0.5rem;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .alert-box.success { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; display: block; }
+  .alert-box.error { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; display: block; }
+  .alert-box.info { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; display: block; }
+  </style>
+</head>
+
+<body>
+<!-- Header -->
+<header class="fixed top-0 w-full glass-nav z-50">
+  <div class="flex justify-between items-center px-6 lg:px-lg h-[72px] max-w-[1200px] mx-auto">
+    <div class="text-[22px] font-extrabold tracking-tighter text-white">DevPortfolio</div>
+    <nav class="hidden md:flex gap-3 items-center">
+      <a class="nav-btn active" href="#hero" data-nav="hero">
+        <span class="material-symbols-outlined text-[18px]">home</span>
+        Home
+      </a>
+      <a class="nav-btn" href="#portfolio" data-nav="portfolio">
+        <span class="material-symbols-outlined text-[18px]">work</span>
+        Portofolio
+      </a>
+      <a class="nav-btn" href="#services" data-nav="services">
+        <span class="material-symbols-outlined text-[18px]">design_services</span>
+        Layanan
+      </a>
+      <a class="nav-btn" href="#contact" data-nav="contact">
+        <span class="material-symbols-outlined text-[18px]">chat</span>
+        Kontak
+      </a>
+      <a class="btn-primary ml-2" href="#contact">Ajukan Proposal</a>
+    </nav>
+    <button id="menuBtn" class="md:hidden text-white">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+  </div>
+  <div id="mobileMenu" class="md:hidden hidden px-6 pb-4">
+    <div class="card space-y-2 !p-3">
+      <a href="#hero" class="nav-btn w-full justify-center" data-nav="hero">
+        <span class="material-symbols-outlined text-[18px]">home</span> Home
+      </a>
+      <a href="#portfolio" class="nav-btn w-full justify-center" data-nav="portfolio">
+        <span class="material-symbols-outlined text-[18px]">work</span> Portofolio
+      </a>
+      <a href="#services" class="nav-btn w-full justify-center" data-nav="services">
+        <span class="material-symbols-outlined text-[18px]">design_services</span> Layanan
+      </a>
+      <a href="#contact" class="nav-btn w-full justify-center" data-nav="contact">
+        <span class="material-symbols-outlined text-[18px]">chat</span> Kontak
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="pt-[72px]">
+  <!-- Hero Section -->
+  <section class="py-xxl px-6 lg:px-lg max-w-[1200px] mx-auto min-h-[85vh] flex items-center reveal active" id="hero">
+    <div class="grid md:grid-cols-2 gap-xl items-center w-full">
+      <div class="space-y-6">
+        <div class="chip inline-flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          Enterprise Solutions
+        </div>
+        <h1 class="text-[40px] md:text-[64px] font-extrabold text-white leading-[1.1] tracking-[-0.04em]">Ubah Ide Bisnis Anda Menjadi Aplikasi Mobile & Web Berstandar Korporat</h1>
+        <p class="text-body-lg text-text-secondary max-w-xl">
+          Kami menghadirkan solusi rekayasa perangkat lunak end-to-end menggunakan arsitektur modern. Menjamin performa aplikasi yang cepat, skalabel, aman, dan dioptimalkan untuk pertumbuhan bisnis Anda.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+          <a class="btn-primary justify-center" href="#contact">
+            Ajukan Proposal Proyek
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+          </a>
+          <a id="demoBtn" class="btn-secondary text-center cursor-pointer">
+            Evaluasi Demo APK
+          </a>
+        </div>
+        <div class="flex items-center gap-6 pt-4 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px]">verified</span>
+            <span>ISO 27001 Ready</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px]">speed</span>
+            <span>99.9% Uptime SLA</span>
+          </div>
+        </div>
+      </div>
+      <div class="relative mt-12 md:mt-0">
+        <div class="card p-2">
+          <img alt="Enterprise Solution" class="w-full h-auto rounded" src="https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&auto=format&fit=crop&q=80">
+          <div class="absolute -bottom-4 -right-4 card p-4 shadow-2xl">
+            <div class="text-xs text-text-secondary uppercase tracking-wider mb-1">Live Metrics</div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-2xl font-bold text-white">2.4s</span>
+              <span class="text-green-400 text-sm">↓ 40%</span>
+            </div>
+            <div class="text-xs">Load Time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="py-xxl px-6 lg:px-lg max-w-[1200px] mx-auto reveal" id="portfolio">
+    <div class="text-center mb-12">
+      <h2 class="text-[32px] md:text-[48px] font-bold text-white mb-4 tracking-[-0.02em]">Studi Kasus & Portofolio Unggulan</h2>
+      <p class="text-text-secondary">Demonstrasi produk digital fungsional yang merepresentasikan standar kualitas korporat.</p>
+    </div>
+    <div class="card !p-0 overflow-hidden">
+      <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-surface-border">
+        <div>
+          <h3 class="text-[28px] md:text-[32px] font-bold text-white">GourmetDash Mobile</h3>
+          <p class="text-primary font-semibold flex items-center gap-2 mt-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            Full-stack Food Ordering Ecosystem
+          </p>
+        </div>
+        <a id="downloadBtn" class="btn-primary bg-white !text-background hover:!bg-primary hover:!text-white cursor-pointer">
+          <span class="material-symbols-outlined text-[20px]">download</span>
+          Download Demo APK
+        </a>
+      </div>
+      <div class="grid md:grid-cols-3 gap-px bg-surface-border">
+        <div class="bg-surface p-6">
+          <span class="material-symbols-outlined text-primary mb-3">group_work</span>
+          <h4 class="font-bold text-white mb-1">Enterprise Multi-Role</h4>
+          <p class="text-sm text-text-secondary">Hak akses terenkripsi untuk Pengguna, Merchant, dan Administrator.</p>
+        </div>
+        <div class="bg-surface p-6">
+          <span class="material-symbols-outlined text-primary mb-3">sync</span>
+          <h4 class="font-bold text-white mb-1">Real-time Sync</h4>
+          <p class="text-sm text-text-secondary">Sinkronisasi data instan untuk efisiensi pelacakan logistik.</p>
+        </div>
+        <div class="bg-surface p-6">
+          <span class="material-symbols-outlined text-primary mb-3">grid_view</span>
+          <h4 class="font-bold text-white mb-1">UI Premium</h4>
+          <p class="text-sm text-text-secondary">Tampilan modern dengan micro-interactions yang memanjakan mata.</p>
+        </div>
+      </div>
+      <div class="p-4 md:p-8 bg-background">
+        <img alt="GourmetDash" class="w-full h-auto rounded-lg border border-surface-border" src="https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1600&auto=format&fit=crop&q=80">
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact --><!-- Tech Stack Section -->
+  <section class="py-xxl px-6 lg:px-lg max-w-[1200px] mx-auto reveal" id="services">
+    <div class="text-center mb-12 max-w-2xl mx-auto">
+      <h2 class="text-[32px] md:text-[48px] font-bold text-white mb-4 tracking-[-0.02em]">Arsitektur & Ekosistem Teknologi</h2>
+      <p class="text-text-secondary">Implementasi teknologi mutakhir berskala industri untuk memastikan efisiensi performa komputasi dan keamanan data tingkat tinggi.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">smartphone</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">React Native</h3>
+        <p class="text-sm text-text-secondary">Pengembangan aplikasi lintas platform dengan performa setara native melalui single-codebase.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">storage</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">Laravel</h3>
+        <p class="text-sm text-text-secondary">Arsitektur backend tangguh untuk otomatisasi sistem dan manajemen keamanan siber tingkat korporat.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">language</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">Next.js</h3>
+        <p class="text-sm text-text-secondary">Frontend super cepat dengan optimasi SEO kelas atas untuk Landing Page atau Dashboard SaaS.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">palette</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">Tailwind CSS</h3>
+        <p class="text-sm text-text-secondary">Sistem desain UI yang konsisten, responsif, dan performant di semua ukuran layar.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">javascript</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">NodeJS & Express</h3>
+        <p class="text-sm text-text-secondary">Membangun RESTful API yang ringan, cepat, dan sanggup menangani lalu lintas data tinggi.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">database</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">PostgreSQL</h3>
+        <p class="text-sm text-text-secondary">Perancangan struktur basis data relasional yang optimal, aman, dan efisien untuk transaksi bisnis.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">account_tree</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">Git & CI/CD</h3>
+        <p class="text-sm text-text-secondary">Manajemen repositori kode yang rapi untuk pelacakan riwayat dan deployment otomatis.</p>
+      </div>
+      <div class="card group">
+        <div class="w-10 h-10 rounded flex items-center justify-center mb-4 bg-white/5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">api</span>
+        </div>
+        <h3 class="font-bold text-white mb-2">API Integration</h3>
+        <p class="text-sm text-text-secondary">Integrasi pihak ketiga seperti Payment Gateway, Logistik, dan Sistem OTP WhatsApp.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Portfolio -->
+  <section class="py-xxl px-6 lg:px-lg max-w-[1200px] mx-auto reveal" id="contact">
+    <div class="grid lg:grid-cols-5 gap-10">
+      <div class="lg:col-span-2 space-y-6">
+        <h2 class="text-[32px] font-semibold text-white leading-tight">Komitmen Layanan & Keamanan Transaksi</h2>
+        <p class="text-text-secondary">Kami menghargai kepercayaan Anda. Berikut adalah komitmen kami untuk menjaga integritas proyek Anda.</p>
+
+        <div class="space-y-4">
+          <div class="card border-l-2 !border-l-primary">
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-primary mt-0.5">verified_user</span>
+              <div>
+                <p class="font-bold text-white mb-1">Milestone Payments</p>
+                <p class="text-sm text-text-secondary">Pembayaran bertahap sesuai progres (DP, Alpha, Beta, Final).</p>
+              </div>
+            </div>
+          </div>
+          <div class="card border-l-2 !border-l-[#81cfff]">
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-[#81cfff] mt-0.5">video_chat</span>
+              <div>
+                <p class="font-bold text-white mb-1">Update Progres Berkala</p>
+                <p class="text-sm text-text-secondary">Laporan perkembangan mingguan melalui video screencast.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card border-l-2 !border-l-green-400">
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-green-400 mt-0.5">handshake</span>
+              <div>
+                <p class="font-bold text-white mb-1">Jasa Rekber Resmi</p>
+                <p class="text-sm text-text-secondary">Tersedia opsi transaksi melalui pihak ketiga terpercaya.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3">
+        <div class="card">
+          <div class="mb-6">
+            <h3 class="text-[24px] font-bold text-white mb-2">Formulir Pengajuan Spesifikasi Proyek</h3>
+            <p class="text-sm text-text-secondary">Sistem monitoring kami memproses data pengajuan secara real-time.</p>
+          </div>
+
+          <!-- Alert Container -->
+          <div id="alertBox" class="alert-box"></div>
+
+          <form class="space-y-5" id="projectForm">
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Nama Lengkap</label>
+                <input class="input-base" name="name" placeholder="Masukkan nama..." required type="text">
+              </div>
+              <div>
+                <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">WhatsApp Bisnis</label>
+                <input class="input-base" name="whatsapp" placeholder="0812..." required type="tel">
+              </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Kategori Proyek</label>
+                <select class="input-base" name="category">
+                  <option>Aplikasi Mobile (React Native)</option>
+                  <option>Web Dashboard (Laravel/Next.js)</option>
+                  <option>Sistem Otomasi / AGC</option>
+                  <option>UI/UX Design Only</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Estimasi Anggaran</label>
+                <select class="input-base" name="budget">
+                  <option>Rp 5jt - Rp 10jt</option>
+                  <option>Rp 10jt - Rp 25jt</option>
+                  <option>Rp 25jt - Rp 50jt</option>
+                  <option>Custom / Enterprise</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Deskripsi Fitur Utama</label>
+              <textarea class="input-base" name="description" placeholder="Jelaskan kebutuhan aplikasi Anda..." required rows="4"></textarea>
+            </div>
+
+            <!-- Google reCAPTCHA v2 -->
+            <div class="flex justify-center">
+              <div class="g-recaptcha" data-sitekey="6LcRaRUtAAAAAJCy_RUlILh3mv6BSt7MKRotKs8V"></div>
+            </div>
+
+            <button class="btn-primary w-full justify-center text-base py-3.5" id="submitBtn" type="submit">
+              Kirim Spesifikasi & Hubungi Insinyur
+              <span class="material-symbols-outlined text-[20px]">send</span>
+            </button>
+            <div class="h-1 w-full bg-surface-border rounded-full overflow-hidden">
+              <div class="h-full w-[65%] bg-primary rounded-full"></div>
+            </div>
+            <p class="text-xs text-center text-text-secondary -mt-2">Rata-rata respon: <span class="text-white font-semibold">< 15 menit</span></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-surface-border py-10 mt-xxl">
+  <div class="max-w-[1200px] mx-auto px-6 lg:px-lg flex flex-col md:flex-row justify-between items-center gap-4">
+    <div>
+      <div class="text-[18px] font-extrabold text-white">DevPortfolio</div>
+      <p class="text-text-secondary text-sm">Crafting premium digital experiences since 2019.</p>
+    </div>
+    <div class="text-text-secondary text-sm">
+      © 2026 DevPortfolio
+    </div>
+    <div class="flex gap-6 text-sm">
+      <a class="hover:text-white transition-colors" href="#">GitHub</a>
+      <a class="hover:text-white transition-colors" href="#">Email</a>
+      <a class="hover:text-white transition-colors" href="#">LinkedIn</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+// Navigation buttons functionality
+const navButtons = document.querySelectorAll('[data-nav]');
+const sections = ['hero', 'portfolio', 'services', 'contact'];
+
+navButtons.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = btn.getAttribute('href');
+    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+    mobileMenu.classList.add('hidden');
+
+    // Update active state
+    navButtons.forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`[data-nav="${btn.dataset.nav}"]`).forEach(b => b.classList.add('active'));
+  });
+});
+
+// Auto-update active nav on scroll - using Intersection Observer for accuracy
+function updateActiveNav() {
+  let current = 'hero';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= 150) current = id;
+    }
+  });
+  navButtons.forEach(b => {
+    b.classList.toggle('active', b.dataset.nav === current);
+  });
+}
+window.addEventListener('scroll', updateActiveNav);
+// Initial call
+updateActiveNav();
+
+function reveal() {
+  document.querySelectorAll(".reveal").forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight - 100) {
+      el.classList.add("active");
+    }
+  });
+}
+window.addEventListener("scroll", reveal);
+reveal();
+
+// Form Submission with JSON (Vercel Serverless API)
+const projectForm = document.getElementById('projectForm');
+const submitBtn = document.getElementById('submitBtn');
+const alertBox = document.getElementById('alertBox');
+
+projectForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  alertBox.className = 'alert-box';
+  alertBox.textContent = '';
+
+  // Check reCAPTCHA
+  const recaptchaResponse = grecaptcha.getResponse();
+  if (!recaptchaResponse) {
+    alertBox.className = 'alert-box error';
+    alertBox.textContent = '❌ Harap centang "I\'m not a robot" terlebih dahulu.';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  const originalBtnText = submitBtn.innerHTML;
+  submitBtn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Memproses...`;
+
+  // Collect form data as JSON (Vercel API accepts JSON)
+  const formData = new FormData(projectForm);
+  const data = Object.fromEntries(formData.entries());
+  data['g-recaptcha-response'] = recaptchaResponse;
+
+  try {
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+
+    if (res.ok && result.status === 'success') {
+      alertBox.className = 'alert-box success';
+      alertBox.textContent = '✅ ' + (result.message || 'Pengajuan berhasil! Kami akan segera menghubungi Anda.');
+      projectForm.reset();
+      grecaptcha.reset();
+    } else {
+      throw new Error(result.message || 'Terjadi kesalahan pada server.');
+    }
+  } catch (err) {
+    alertBox.className = 'alert-box error';
+    alertBox.textContent = '❌ ' + err.message;
+    grecaptcha.reset();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnText;
+  }
+});
+
+document.getElementById('downloadBtn')?.addEventListener('click', () => {
+  alert('Demo APK akan segera tersedia. Hubungi kami via WhatsApp untuk akses early preview.');
+});
+document.getElementById('demoBtn')?.addEventListener('click', () => {
+  document.getElementById('portfolio').scrollIntoView({behavior: 'smooth'});
+});
+</script>
+</body>
+</html>
