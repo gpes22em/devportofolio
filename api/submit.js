@@ -90,8 +90,10 @@ module.exports = async function handler(req, res) {
     const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
 
     // 2. Kirim Notifikasi langsung ke Akun Telegram Anda
-    const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
-    const tgChatId = "8806996731";
+    // Ganti nilai tgChatId lama dengan ID grup baru Anda lengkap dengan tanda minusnya
+const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
+const tgChatId = "-1003949170710"; // <--- SUDAH DIGANTI DISINI
+
     let tgSuccess = false;
 
     if (tgToken && tgChatId) {
