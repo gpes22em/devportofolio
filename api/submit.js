@@ -35,7 +35,7 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
 
     // PERBAIKAN MUTLAK: Hostname murni tanpa karakter "://" atau "https://"
     const options = {
-      hostname: '://google.com', 
+      hostname: 'www.google.com',
       path: '/recaptcha/api/siteverify',
       method: 'POST',
       headers: {
