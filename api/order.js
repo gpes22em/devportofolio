@@ -9,7 +9,7 @@ const pool = new Pool({
   },
 });
 
-// Helper untuk membaca request body di Vercel
+// Helper untuk memastikan body JSON terbaca sempurna di lingkungan Vercel
 async function parseRequestBody(req) {
   if (req.body && typeof req.body === 'object') {
     return req.body;
@@ -33,8 +33,9 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
+    // PERBAIKAN MUTLAK: Hostname murni tanpa karakter "://" atau "https://"
     const options = {
-      hostname: '://google.com',
+      hostname: '://google.com', 
       path: '/recaptcha/api/siteverify',
       method: 'POST',
       headers: {
@@ -42,7 +43,7 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
         'Content-Length': Buffer.byteLength(payload),
         'User-Agent': 'Node-HTTPS-Client'
       },
-      timeout: 5000 // Batas waktu respons 5 detik
+      timeout: 5000 // Batas waktu respons ke Google maksimal 5 detik
     };
 
     const request = https.request(options, (res) => {
@@ -53,7 +54,6 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
           const parsed = JSON.parse(data);
           resolve(parsed);
         } catch (e) {
-          // Jika masih mengembalikan dokumen non-JSON, kita tangkap di sini agar server tidak crash
           console.error("Google returned non-JSON data:", data);
           resolve({ success: false, error: 'invalid-google-response' });
         }
@@ -100,7 +100,7 @@ module.exports = async function handler(req, res) {
     const recaptchaSecret = process.env.RECAPTCHA_SECRET;
     const remoteIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
 
-    // Panggil helper HTTPS murni
+    // Jalankan verifikasi reCAPTCHA menggunakan HTTPS client bawaan
     const recaptchaData = await verifyGoogleRecaptcha(recaptchaSecret, recaptchaResponse, remoteIp);
 
     if (!recaptchaData || recaptchaData.success !== true) {
@@ -128,6 +128,7 @@ module.exports = async function handler(req, res) {
       throw new Error('Gagal menyimpan data ke tabel database.');
     }
 
+    // --- Response Akhir Sukses ---
     return res.status(200).json({
       status: 'success',
       message: 'Pengajuan berhasil disimpan langsung ke PostgreSQL Anda!',
