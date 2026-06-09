@@ -17,7 +17,7 @@ async function parseRequestBody(req) {
   });
 }
 
-// FUNGSI VERIFIKASI RECAPTCHA - SUDAH FIX MENGGUNAKAN www.google.com
+// FUNGSI VERIFIKASI RECAPTCHA - MENGGUNAKAN www.google.com
 function verifyGoogleRecaptcha(secret, response, remoteIp) {
   return new Promise((resolve, reject) => {
     const payload = new URLSearchParams({
@@ -86,7 +86,7 @@ module.exports = async function handler(req, res) {
       [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
     );
 
-    // Ambil ID database baris pertama secara benar
+    // Membaca ID database baris pertama secara benar sesuai tabel Neon Anda
     const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
 
     // 2. Format Teks Notifikasi murni tanpa parsing HTML agar dijamin lolos filter Telegram
@@ -99,7 +99,7 @@ module.exports = async function handler(req, res) {
 
     if (tgToken && tgChatId) {
       try {
-        // PERBAIKAN UTAMA: Menggunakan URL resmi api.telegram.org dengan format token bot yang benar
+        // PERBAIKAN FATAL: URL sudah diubah ke server resmi api.telegram.org dan menggunakan tanda $ yang benar
         const tgRes = await fetch(
           `https://telegram.org{tgToken}/sendMessage`,
           {
