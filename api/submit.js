@@ -25,9 +25,8 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
-    // FIXED: Menggunakan www.google.com bersih tanpa ada karakter ://
     const options = {
-      hostname: 'www.google.com', 
+      hostname: '://google.com', 
       path: '/recaptcha/api/siteverify',
       method: 'POST',
       headers: {
@@ -77,61 +76,38 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ status: 'error', message: 'Semua field wajib diisi.' });
     }
 
-    const ipAddress = req.headers['x-forwarded-for'] || 'unknown';
-
     // 1. Simpan ke database PostgreSQL 
-    const insertResult = await pool.query(
+    await pool.query(
       `INSERT INTO orders (name, whatsapp, category, budget, description, ip_address, status, wa_notified, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'new', 0, NOW()) RETURNING id`,
-      [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
+       VALUES ($1, $2, $3, $4, $5, $6, 'new', 0, NOW())`,
+      [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), req.headers['x-forwarded-for'] || 'unknown']
     );
 
-    // FIXED: Menggunakan indeks [0] untuk mengambil ID dari array rows database secara benar
-    const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
+    // 2. Kirim teks biasa ke Telegram agar tidak diblokir/ditolak sistem Telegram
+    const rawMessage = `🔔 PESANAN BARU\n\n👤 Nama: ${name}\n📱 WhatsApp: ${whatsapp}\n📂 Kategori: ${category}\n💰 Budget: ${budget}\n\n📝 Deskripsi:\n${description}`;
 
-    // 2. Kirim Notifikasi langsung ke Grup Telegram Anda
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
     const tgChatId = "-1003949170710";
-    let tgSuccess = false;
 
-    if (tgToken && tgChatId) {
-      const message = `🔔 <b>PESANAN BARU</b>\n\n📌 <b>ID:</b> #${orderId}\n👤 <b>Nama:</b> ${name}\n📱 <b>WhatsApp:</b> ${whatsapp}\n📂 <b>Kategori:</b> ${category}\n💰 <b>Budget:</b> ${budget}\n\n📝 <b>Deskripsi:</b>\n${description}\n\n🌐 <b>IP:</b> ${ipAddress}\nMohon segera ditindaklanjuti.`;
-
-      try {
-        const tgRes = await fetch(
-          `https://telegram.org{tgToken}/sendMessage`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: tgChatId,
-              text: message,
-              parse_mode: 'HTML',
-            }),
-          }
-        );
-        const tgData = await tgRes.json();
-        tgSuccess = tgData.ok === true;
-      } catch (e) {
-        console.error('Gagal mengirim ke Telegram:', e);
-        tgSuccess = false;
-      }
-    }
-
-    // 3. Update status database jika Telegram sukses terkirim
-    if (tgSuccess) {
-      await pool.query('UPDATE orders SET wa_notified = 1 WHERE id = $1', [orderId]);
-    }
-
-    return res.status(200).json({ 
-      status: 'success', 
-      message: tgSuccess 
-        ? 'Pengajuan berhasil! Notifikasi Telegram telah terkirim ke HP Anda.' 
-        : 'Pengajuan berhasil disimpan ke Database, namun notifikasi Telegram gagal.' 
+    const tgRes = await fetch(`https://telegram.org{tgToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: tgChatId,
+        text: rawMessage
+      })
     });
 
+    const tgData = await tgRes.json();
+
+    if (tgData.ok === true) {
+      return res.status(200).json({ status: 'success', message: 'Pengajuan berhasil masuk ke Database dan Telegram Anda!' });
+    } else {
+      // Jika Telegram menolak, dia akan memunculkan alasan konkretnya di layar Anda
+      return res.status(400).json({ status: 'error', message: 'Database Sukses, tapi Telegram Menolak: ' + tgData.description });
+    }
+
   } catch (err) {
-    console.error('Server error:', err);
     return res.status(500).json({ status: 'error', message: 'Server error: ' + err.message });
   }
 };
