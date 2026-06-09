@@ -25,8 +25,9 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
+    // SUDAH FIX: Menggunakan www.google.com bersih sesuai kata Anda
     const options = {
-      hostname: '://google.com', 
+      hostname: 'www.google.com', 
       path: '/recaptcha/api/siteverify',
       method: 'POST',
       headers: {
@@ -69,7 +70,7 @@ module.exports = async function handler(req, res) {
     const recaptchaData = await verifyGoogleRecaptcha(process.env.RECAPTCHA_SECRET, recaptchaResponse, req.headers['x-forwarded-for'] || '');
 
     if (!recaptchaData || recaptchaData.success !== true) {
-      return res.status(400).json({ status: 'error', message: 'Verifikasi reCAPTCHA gagal siber.' });
+      return res.status(400).json({ status: 'error', message: 'Verifikasi reCAPTCHA gagal.' });
     }
 
     if (!name || !whatsapp || !category || !budget || !description) {
@@ -85,10 +86,10 @@ module.exports = async function handler(req, res) {
       [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
     );
 
-    // Membaca ID baris database dengan aman
+    // SUDAH FIX: Menggunakan indeks [0] agar membaca ID database dengan benar dan tidak crash
     const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
 
-    // 2. Kirim Notifikasi langsung ke Akun Telegram Anda (Token & ID sudah terpasang otomatis)
+    // 2. Kirim Notifikasi langsung ke Akun Telegram Anda
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
     const tgChatId = "8806996731";
     let tgSuccess = false;
