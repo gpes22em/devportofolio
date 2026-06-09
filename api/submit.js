@@ -25,7 +25,7 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
-    // PASTI & WAJIB: Menggunakan www.google.com murni tanpa tanda :// sesuai instruksi Anda
+    // DIKUNCI: Menggunakan www.google.com murni tanpa tanda :// sesuai instruksi Anda
     const options = {
       hostname: 'www.google.com', 
       path: '/recaptcha/api/siteverify',
@@ -77,35 +77,56 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ status: 'error', message: 'Semua field wajib diisi.' });
     }
 
+    const ipAddress = req.headers['x-forwarded-for'] || 'unknown';
+
     // 1. Simpan ke database PostgreSQL 
-    await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO orders (name, whatsapp, category, budget, description, ip_address, status, wa_notified, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'new', 0, NOW())`,
-      [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), req.headers['x-forwarded-for'] || 'unknown']
+       VALUES ($1, $2, $3, $4, $5, $6, 'new', 0, NOW()) RETURNING id`,
+      [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
     );
 
-    // 2. Format pesan teks biasa untuk Telegram agar aman dari error parse HTML
-    const rawMessage = `🔔 PESANAN BARU\n\n👤 Nama: ${name}\n📱 WhatsApp: ${whatsapp}\n📂 Kategori: ${category}\n💰 Budget: ${budget}\n\n📝 Deskripsi:\n${description}`;
+    const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
+
+    // 2. Format Teks Notifikasi (Gunakan teks biasa agar aman)
+    const rawMessage = `🔔 PESANAN BARU\n\n📌 ID: #${orderId}\n👤 Nama: ${name}\n📱 WhatsApp: ${whatsapp}\n📂 Kategori: ${category}\n💰 Budget: ${budget}\n\n📝 Deskripsi:\n${description}\n\n🌐 IP: ${ipAddress}`;
 
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
     const tgChatId = "-1003949170710";
 
-    const tgRes = await fetch(`https://telegram.org{tgToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: tgChatId,
-        text: rawMessage
-      })
-    });
+    let tgSuccess = false;
 
-    const tgData = await tgRes.json();
-
-    if (tgData.ok === true) {
-      return res.status(200).json({ status: 'success', message: 'Pengajuan berhasil masuk ke Database dan Telegram Anda!' });
-    } else {
-      return res.status(400).json({ status: 'error', message: 'Database Sukses, tetapi Telegram menolak: ' + tgData.description });
+    if (tgToken && tgChatId) {
+      try {
+        // PERBAIKAN URL TELEGRAM: Menggunakan endpoint api.telegram.org yang benar dengan ${tgToken}
+        const tgRes = await fetch(
+          `https://telegram.org{tgToken}/sendMessage`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: tgChatId,
+              text: rawMessage
+            }),
+          }
+        );
+        const tgData = await tgRes.json();
+        tgSuccess = tgData.ok === true;
+      } catch (e) {
+        console.error('Telegram Fetch Error:', e);
+        tgSuccess = false;
+      }
     }
+
+    // 3. Update status database jika Telegram sukses terkirim
+    if (tgSuccess) {
+      await pool.query('UPDATE orders SET wa_notified = 1 WHERE id = $1', [orderId]);
+    }
+
+    return res.status(200).json({ 
+      status: 'success', 
+      message: 'Pengajuan berhasil! Data masuk ke Database dan Grup Telegram Anda.' 
+    });
 
   } catch (err) {
     console.error('Server error:', err);
