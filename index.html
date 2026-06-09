@@ -445,21 +445,18 @@
             <div class="grid md:grid-cols-2 gap-4">
               <div>
                 <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Kategori Proyek</label>
-                <select class="input-base" name="category">
+                <select class="input-base" name="category" id="categorySelect" onchange="handleCategoryChange(this)">
                   <option>Aplikasi Mobile (React Native)</option>
                   <option>Web Dashboard (Laravel/Next.js)</option>
                   <option>Sistem Otomasi / AGC</option>
                   <option>UI/UX Design Only</option>
+                  <option value="custom">Custom / Lainnya (ketik sendiri)</option>
                 </select>
+                <input class="input-base mt-2 hidden" name="category_custom" id="categoryCustom" placeholder="Ketik kategori custom Anda..." type="text">
               </div>
               <div>
                 <label class="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1.5 block">Estimasi Anggaran</label>
-                <select class="input-base" name="budget">
-                  <option>Rp 5jt - Rp 10jt</option>
-                  <option>Rp 10jt - Rp 25jt</option>
-                  <option>Rp 25jt - Rp 50jt</option>
-                  <option>Custom / Enterprise</option>
-                </select>
+                <input class="input-base" name="budget" placeholder="Contoh: Rp 15jt, Rp 50jt, negotiable..." required type="text">
               </div>
             </div>
             <div>
@@ -554,6 +551,21 @@ function reveal() {
 window.addEventListener("scroll", reveal);
 reveal();
 
+// Handle category custom input
+function handleCategoryChange(select) {
+  const customInput = document.getElementById('categoryCustom');
+  if (select.value === 'custom') {
+    customInput.classList.remove('hidden');
+    customInput.required = true;
+    select.name = 'category_select';
+  } else {
+    customInput.classList.add('hidden');
+    customInput.required = false;
+    customInput.value = '';
+    select.name = 'category';
+  }
+}
+
 // Form Submission with JSON (Vercel Serverless API)
 const projectForm = document.getElementById('projectForm');
 const submitBtn = document.getElementById('submitBtn');
@@ -579,6 +591,18 @@ projectForm.addEventListener('submit', async (e) => {
   // Collect form data as JSON (Vercel API accepts JSON)
   const formData = new FormData(projectForm);
   const data = Object.fromEntries(formData.entries());
+  
+  // If custom category is selected, use the custom input value
+  if (data.category_select === 'custom' && data.category_custom) {
+    data.category = data.category_custom;
+    delete data.category_select;
+    delete data.category_custom;
+  } else if (data.category_select) {
+    data.category = data.category_select;
+    delete data.category_select;
+  }
+  delete data.category_custom;
+  
   data['g-recaptcha-response'] = recaptchaResponse;
 
   try {
@@ -614,5 +638,5 @@ document.getElementById('demoBtn')?.addEventListener('click', () => {
   document.getElementById('portfolio').scrollIntoView({behavior: 'smooth'});
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a09012c28ee6a8ee',t:'MTc4MTAwNzQ0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0901c3bec7098b3',t:'MTc4MTAwNzgzNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
