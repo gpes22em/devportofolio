@@ -25,7 +25,7 @@ function verifyGoogleRecaptcha(secret, response, remoteIp) {
       remoteip: remoteIp
     }).toString();
 
-    // TETAP PAKAI: www.google.com murni tanpa tambahan apa pun
+    // FIXED: Menggunakan www.google.com bersih tanpa ada karakter ://
     const options = {
       hostname: 'www.google.com', 
       path: '/recaptcha/api/siteverify',
@@ -86,10 +86,10 @@ module.exports = async function handler(req, res) {
       [name.trim(), whatsapp.trim(), category.trim(), budget.trim(), description.trim(), ipAddress]
     );
 
-    // KOREKSI UTAMA: Ditambahkan [0] agar membaca ID dengan benar dari array
+    // FIXED: Menggunakan indeks [0] untuk mengambil ID dari array rows database secara benar
     const orderId = insertResult.rows && insertResult.rows.length > 0 ? insertResult.rows[0].id : 'N/A';
 
-    // 2. Kirim Notifikasi langsung ke Grup Telegram Anda (-1003949170710)
+    // 2. Kirim Notifikasi langsung ke Grup Telegram Anda
     const tgToken = "8910424366:AAHFAwYWLeMCLfB8fnmg1wtn8LFuD4i0uM0";
     const tgChatId = "-1003949170710";
     let tgSuccess = false;
