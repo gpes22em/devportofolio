@@ -7,9 +7,29 @@ const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // Required for Neon & many managed Postgres services
+    rejectUnauthorized: false,
   },
 });
+
+// Helper untuk membaca request body jika dikirim sebagai JSON stringstream
+async function parseRequestBody(req) {
+  if (req.body && typeof req.body === 'object') {
+    return req.body; // Jika Vercel kebetulan sudah mem-parsing-nya
+  }
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        resolve({});
+      }
+    });
+  });
+}
 
 module.exports = async function handler(req, res) {
   // CORS headers
@@ -26,13 +46,17 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const body = req.body || {};
+    // PERBAIKAN 1: Gunakan helper parser agar req.body tidak kosong
+    const body = await parseRequestBody(req);
+    
     const name = (body.name || '').trim();
     const whatsapp = (body.whatsapp || '').trim();
     const category = (body.category || '').trim();
     const budget = (body.budget || '').trim();
     const description = (body.description || '').trim();
-    const recaptchaResponse = (body['g-recaptcha-response'] || '').trim();
+    
+    // Pastikan frontend mengirimkan key ini (atau 'recaptchaToken' sesuai form Anda)
+    const recaptchaResponse = (body['g-recaptcha-response'] || body.recaptchaToken || '').trim();
 
     // --- 1. Validasi reCAPTCHA ---
     if (!recaptchaResponse) {
@@ -40,17 +64,27 @@ module.exports = async function handler(req, res) {
     }
 
     const recaptchaSecret = process.env.RECAPTCHA_SECRET;
+    
+    // PERBAIKAN 2: Menggunakan konstruksi URLSearchParams yang lebih aman untuk Google API
+    const verifyParams = new URLSearchParams({
+      secret: recaptchaSecret,
+      response: recaptchaResponse,
+      remoteip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || ''
+    });
+
     const recaptchaVerify = await fetch(
       'https://www.google.com/recaptcha/api/siteverify',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `secret=${encodeURIComponent(recaptchaSecret)}&response=${encodeURIComponent(recaptchaResponse)}&remoteip=${encodeURIComponent(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '')}`,
+        body: verifyParams.toString(),
       }
     );
     const recaptchaData = await recaptchaVerify.json();
 
     if (!recaptchaData || recaptchaData.success !== true) {
+      // DEBUG LOG (Aman dihapus nanti): Membantu melihat error dari Google di log Vercel Anda
+      console.error('Google reCAPTCHA Error-Codes:', recaptchaData['error-codes']); 
       return res.status(400).json({ status: 'error', message: 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.' });
     }
 
