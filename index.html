@@ -77,18 +77,20 @@
   transform: translateY(-2px);
   }
   .input-base {
-  background: #0B0F19;
+  background: #0B0F19 !important;
   border: 1px solid #2D3748;
   border-radius: 0.25rem;
   padding: 12px 16px;
-  color: white;
+  color: #FFFFFF !important;
   width: 100%;
   outline: none;
   transition: all 0.2s;
+  -webkit-text-fill-color: #FFFFFF !important;
   }
   .input-base:focus {
   border-color: #FF5A27;
   box-shadow: 0 0 0 2px rgba(255, 90, 39, 0.3);
+  background: #0B0F19 !important;
   }
   .btn-primary {
   background: #FF5A27;
@@ -612,5 +614,5 @@ document.getElementById('demoBtn')?.addEventListener('click', () => {
   document.getElementById('portfolio').scrollIntoView({behavior: 'smooth'});
 });
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a09012c28ee6a8ee',t:'MTc4MTAwNzQ0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
