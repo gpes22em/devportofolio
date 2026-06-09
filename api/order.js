@@ -1,3 +1,4 @@
+const https = require('https');
 const { Pool } = require('pg');
 
 // PostgreSQL Pool (Neon / Vercel Postgres)
@@ -8,6 +9,7 @@ const pool = new Pool({
   },
 });
 
+// Helper untuk membaca request body di Vercel
 async function parseRequestBody(req) {
   if (req.body && typeof req.body === 'object') {
     return req.body;
@@ -19,6 +21,50 @@ async function parseRequestBody(req) {
       try { resolve(body ? JSON.parse(body) : {}); } 
       catch (e) { resolve({}); }
     });
+  });
+}
+
+// Helper Verifikasi reCAPTCHA menggunakan modul HTTPS murni (Bukan fetch)
+function verifyGoogleRecaptcha(secret, response, remoteIp) {
+  return new Promise((resolve, reject) => {
+    const payload = new URLSearchParams({
+      secret: secret,
+      response: response,
+      remoteip: remoteIp
+    }).toString();
+
+    const options = {
+      hostname: '://google.com',
+      path: '/recaptcha/api/siteverify',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(payload),
+        'User-Agent': 'Node-HTTPS-Client'
+      },
+      timeout: 5000 // Batas waktu respons 5 detik
+    };
+
+    const request = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed);
+        } catch (e) {
+          // Jika masih mengembalikan dokumen non-JSON, kita tangkap di sini agar server tidak crash
+          console.error("Google returned non-JSON data:", data);
+          resolve({ success: false, error: 'invalid-google-response' });
+        }
+      });
+    });
+
+    request.on('error', (error) => { reject(error); });
+    request.on('timeout', () => { request.destroy(); reject(new Error('Google API Timeout')); });
+    
+    request.write(payload);
+    request.end();
   });
 }
 
@@ -54,24 +100,14 @@ module.exports = async function handler(req, res) {
     const recaptchaSecret = process.env.RECAPTCHA_SECRET;
     const remoteIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
 
-    const verifyData = new URLSearchParams();
-    verifyData.append('secret', recaptchaSecret);
-    verifyData.append('response', recaptchaResponse);
-    verifyData.append('remoteip', remoteIp);
-
-    // Kirim ke URL Valid Google API
-    const recaptchaVerify = await fetch(
-      'https://google.com',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: verifyData.toString(),
-      }
-    );
-    const recaptchaData = await recaptchaVerify.json();
+    // Panggil helper HTTPS murni
+    const recaptchaData = await verifyGoogleRecaptcha(recaptchaSecret, recaptchaResponse, remoteIp);
 
     if (!recaptchaData || recaptchaData.success !== true) {
-      return res.status(400).json({ status: 'error', message: 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.' });
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Verifikasi reCAPTCHA gagal di sistem keamanan. Silakan coba lagi.' 
+      });
     }
 
     // --- 2. Validasi Field ---
@@ -89,14 +125,12 @@ module.exports = async function handler(req, res) {
     );
 
     if (!insertResult.rows || insertResult.rows.length === 0) {
-      throw new Error('Gagal menyimpan data atau tabel orders tidak merespon.');
+      throw new Error('Gagal menyimpan data ke tabel database.');
     }
 
-    // --- KODE TELEGRAM DAN SENDGRID DIMATIKAN SEMENTARA AGAR TIDAK CRASH ---
-    
     return res.status(200).json({
       status: 'success',
-      message: 'Pengajuan berhasil disimpan langsung ke database PostgreSQL Anda!',
+      message: 'Pengajuan berhasil disimpan langsung ke PostgreSQL Anda!',
     });
 
   } catch (err) {
